@@ -59,7 +59,7 @@ const UI =
           .join('\r\n');
 
         // Display the options and hide the cursor
-        this.write(optionsText + constants.EOL + ansiEscapes.cursorHide);
+        this.write('\r\n' + optionsText + constants.EOL + ansiEscapes.cursorHide);
       }
 
       close() {
@@ -86,10 +86,13 @@ const UI =
       }
 
       _onkey(key) {
+        // console.log(key); // For debugging purposes
         if (key.name === 'up') return this._onup();
         if (key.name === 'down') return this._ondown();
 
-        this._history.cursor = -1;
+        if(!this.selectionMode){
+          this._history.cursor = -1;
+        }
 
         let characters;
 
@@ -116,14 +119,20 @@ const UI =
           case 'linefeed':
           // If we are in selection mode, return the selected option
           case 'return': {
+            if(!this.selectionMode && this.line.length === 0) {
+              this.emit('line', "")
+              return
+            };
             if (this.selectionMode) {
               const selectedOption = this.options[this.choiceIndex];
-              this.write('\r\n' + ansiEscapes.colorBrightGreen + 'Selected option: ' + selectedOption + '\r\n' + ansiEscapes.modifierReset);
+              // this.write('\r\n' + ansiEscapes.colorBrightGreen + 'Selected option: ' + selectedOption + '\r\n' + ansiEscapes.modifierReset);
               this.clearLine();
               this.emit('selection', selectedOption);
               // show the cursor
               this.write(ansiEscapes.cursorShow);
-              break;
+              // Reset the history cursor
+              // this._history = new History();
+              return;
             } else {
               const line = this.line;
               if (line.trim() === '') return '';
@@ -148,7 +157,7 @@ const UI =
               // show the cursor
               this.write(ansiEscapes.cursorShow);
               this.emit('selection', false);
-              break;
+              return;
             }
           }
           case 'f1':
@@ -196,7 +205,6 @@ const UI =
         // If we are in selection mode, we should not allow the user to type
         if (!this.selectionMode) {
           this.line = this.line.substring(0, this.cursor) + characters + this.line.substring(this.cursor);
-
           this.cursor += characters.length;
           this.prompt();
         }

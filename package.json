@@ -1,6 +1,6 @@
 {
   "name": "bare-ui-advanced",
-  "version": "0.0.3",
+  "version": "0.0.1",
   "description": "Advancement of the bare-readline package with more features",
   "main": "index.js",
   "files": [
